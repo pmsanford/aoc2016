@@ -52,7 +52,7 @@ func main() {
 		for _, val := range line {
 			key = lookup_move(key, get_dir(int(val)))
 		}
-		fmt.Printf("%d", key)
+		fmt.Printf("%X", key)
 	}
 }
 
@@ -60,57 +60,81 @@ func lookup_move(key, dir int) int {
 	m := Lookup{
 		1: KeyLookup{
 			U: 1,
-			R: 2,
+			R: 1,
 			L: 1,
-			D: 4,
+			D: 3,
 		},
 		2: KeyLookup{
 			U: 2,
 			R: 3,
-			L: 1,
-			D: 5,
-		},
-		3: KeyLookup{
-			U: 3,
-			R: 3,
 			L: 2,
 			D: 6,
 		},
-		4: KeyLookup{
+		3: KeyLookup{
 			U: 1,
-			R: 5,
-			L: 4,
+			R: 4,
+			L: 2,
 			D: 7,
+		},
+		4: KeyLookup{
+			U: 4,
+			R: 4,
+			L: 3,
+			D: 8,
 		},
 		5: KeyLookup{
-			U: 2,
-			R: 6,
-			L: 4,
-			D: 8,
-		},
-		6: KeyLookup{
-			U: 3,
+			U: 5,
 			R: 6,
 			L: 5,
-			D: 9,
+			D: 5,
+		},
+		6: KeyLookup{
+			U: 2,
+			R: 7,
+			L: 5,
+			D: 10,
 		},
 		7: KeyLookup{
-			U: 4,
+			U: 3,
 			R: 8,
-			L: 7,
-			D: 7,
+			L: 6,
+			D: 11,
 		},
 		8: KeyLookup{
-			U: 5,
+			U: 4,
 			R: 9,
 			L: 7,
-			D: 8,
+			D: 12,
 		},
 		9: KeyLookup{
-			U: 6,
+			U: 9,
 			R: 9,
 			L: 8,
 			D: 9,
+		},
+		10: KeyLookup{
+			U: 6,
+			R: 11,
+			L: 10,
+			D: 10,
+		},
+		11: KeyLookup{
+			U: 7,
+			R: 12,
+			L: 10,
+			D: 13,
+		},
+		12: KeyLookup{
+			U: 8,
+			R: 12,
+			L: 11,
+			D: 12,
+		},
+		13: KeyLookup{
+			U: 11,
+			R: 13,
+			L: 13,
+			D: 13,
 		},
 	}
 	return m[key][dir]
