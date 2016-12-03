@@ -94,14 +94,32 @@ func make_move(coords *Coords, facing int, dist uint) {
 	}
 }
 
+type DirSet map[Coords]bool
+
+func (set DirSet) contains(dir Coords) bool {
+	_, in := set[dir]
+	return in
+}
+
+func (set *DirSet) add(dir Coords) {
+	(*set)[dir] = true
+}
+
 func main() {
 	ch := make(chan Direction)
 	go parse_input("input.txt", ch)
 	facing := N
 	coords := Coords{0, 0}
+	visited := make(DirSet)
 	for val := range ch {
 		facing = make_turn(facing, val.turn)
 		make_move(&coords, facing, val.dist)
+		if visited.contains(coords) {
+			fmt.Printf("Found double-visit at %+v\n", coords)
+			break
+		} else {
+			visited.add(coords)
+		}
 	}
 	fmt.Printf("Final coords: %+v\n", coords)
 	fmt.Printf("Distance: %d\n", coords.x+coords.y)
