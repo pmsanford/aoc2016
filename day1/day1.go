@@ -43,8 +43,6 @@ func (l1 Line) intersects(l2 Line) (bool, Coords) {
 
 	c := x12*y34 - y12*x34
 
-	fmt.Printf("C: %d\n", c)
-
 	intersects := math.Abs(float64(c)) > 0.01
 
 	if !intersects {
@@ -57,7 +55,32 @@ func (l1 Line) intersects(l2 Line) (bool, Coords) {
 	x := (a*x34 - b*x12) / c
 	y := (a*y34 - b*y12) / c
 
-	return intersects, Coords{x, y}
+	icoords := Coords{x, y}
+
+	if outside_line(icoords, l1) || outside_line(icoords, l2) {
+		return false, Coords{0, 0}
+	}
+
+	return intersects, icoords
+}
+
+func outside_line(coords Coords, line Line) bool {
+	return outside(coords.x, line.a.x, line.b.x) ||
+		outside(coords.y, line.a.y, line.b.y)
+}
+
+func outside(test, i1, i2 int) bool {
+	low := min(i1, i2)
+	high := max(i1, i2)
+	return test < low || test > high
+}
+
+func min(i1, i2 int) int {
+	return int(math.Min(float64(i1), float64(i2)))
+}
+
+func max(i1, i2 int) int {
+	return int(math.Max(float64(i1), float64(i2)))
 }
 
 func (dir Direction) String() string {
@@ -111,21 +134,35 @@ func make_turn(facing, turn_dir int) int {
 func make_move(coords *Coords, facing int, dist uint) {
 	switch facing {
 	case N:
-		coords.x += int(dist)
-		break
-	case E:
 		coords.y += int(dist)
 		break
+	case E:
+		coords.x += int(dist)
+		break
 	case S:
-		coords.x -= int(dist)
+		coords.y -= int(dist)
 		break
 	case W:
-		coords.y -= int(dist)
+		coords.x -= int(dist)
 		break
 	}
 }
 
-type LineSet map[Line]bool
+type Lines []Line
+
+func (lines *Lines) add(line Line) {
+	*lines = append(*lines, line)
+}
+
+func (lines *Lines) intersects(line Line) (bool, Coords) {
+	for _, l := range *lines {
+		i, coords := l.intersects(line)
+		if i {
+			return true, coords
+		}
+	}
+	return false, Coords{0, 0}
+}
 
 type DirSet map[Coords]bool
 
@@ -143,26 +180,21 @@ func main() {
 	go parse_input("input.txt", ch)
 	facing := N
 	coords := Coords{0, 0}
-	visited := make(DirSet)
+	lines := make(Lines, 0)
 	for val := range ch {
+		prevcoord := coords
 		facing = make_turn(facing, val.turn)
 		make_move(&coords, facing, val.dist)
-		if visited.contains(coords) {
-			fmt.Printf("Found double-visit at %+v\n", coords)
-			break
-		} else {
-			visited.add(coords)
+		line := Line{prevcoord, coords}
+		ist, ic := lines.intersects(line)
+		if ist {
+			if prevcoord.x != ic.x || prevcoord.y != ic.y {
+				coords = ic
+				break
+			}
 		}
+		lines.add(line)
 	}
 	fmt.Printf("Final coords: %+v\n", coords)
 	fmt.Printf("Distance: %d\n", coords.x+coords.y)
-
-	a := Line{Coords{0, 0}, Coords{4, 4}}
-	b := Line{Coords{2, 0}, Coords{2, 4}}
-	c := Line{Coords{0, 0}, Coords{0, 2}}
-
-	abi, abc := a.intersects(b)
-	bci, _ := b.intersects(c)
-
-	fmt.Printf("AB: %v at %+v, BC: %v", abi, abc, bci)
 }
