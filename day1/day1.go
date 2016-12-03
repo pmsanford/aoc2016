@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -27,6 +28,36 @@ type Direction struct {
 type Coords struct {
 	x int
 	y int
+}
+
+type Line struct {
+	a Coords
+	b Coords
+}
+
+func (l1 Line) intersects(l2 Line) (bool, Coords) {
+	x12 := l1.a.x - l1.b.x
+	x34 := l2.a.x - l2.b.x
+	y12 := l1.a.y - l1.b.y
+	y34 := l2.a.y - l2.b.y
+
+	c := x12*y34 - y12*x34
+
+	fmt.Printf("C: %d\n", c)
+
+	intersects := math.Abs(float64(c)) > 0.01
+
+	if !intersects {
+		return intersects, Coords{0, 0}
+	}
+
+	a := l1.a.x*l1.b.y - l1.a.y*l1.b.x
+	b := l2.a.x*l2.b.y - l2.a.y*l2.b.x
+
+	x := (a*x34 - b*x12) / c
+	y := (a*y34 - b*y12) / c
+
+	return intersects, Coords{x, y}
 }
 
 func (dir Direction) String() string {
@@ -94,6 +125,8 @@ func make_move(coords *Coords, facing int, dist uint) {
 	}
 }
 
+type LineSet map[Line]bool
+
 type DirSet map[Coords]bool
 
 func (set DirSet) contains(dir Coords) bool {
@@ -123,4 +156,13 @@ func main() {
 	}
 	fmt.Printf("Final coords: %+v\n", coords)
 	fmt.Printf("Distance: %d\n", coords.x+coords.y)
+
+	a := Line{Coords{0, 0}, Coords{4, 4}}
+	b := Line{Coords{2, 0}, Coords{2, 4}}
+	c := Line{Coords{0, 0}, Coords{0, 2}}
+
+	abi, abc := a.intersects(b)
+	bci, _ := b.intersects(c)
+
+	fmt.Printf("AB: %v at %+v, BC: %v", abi, abc, bci)
 }
