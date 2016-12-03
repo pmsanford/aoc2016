@@ -103,5 +103,6 @@ func main() {
 		facing = make_turn(facing, val.turn)
 		make_move(&coords, facing, val.dist)
 	}
-	fmt.Println(coords)
+	fmt.Printf("Final coords: %+v\n", coords)
+	fmt.Printf("Distance: %d\n", coords.x+coords.y)
 }
