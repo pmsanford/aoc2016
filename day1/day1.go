@@ -31,12 +31,11 @@ func check(e error) {
 	}
 }
 
-func parse_input(filename string) []Direction {
+func parse_input(filename string, ch chan Direction) {
 	dat, err := ioutil.ReadFile(filename)
 	check(err)
 	istr := string(dat)
 	dirs := strings.Split(istr, ", ")
-	dirlist := make([]Direction, 100)
 	for i := range dirs {
 		turnid := dirs[i][0]
 		turn := R
@@ -45,14 +44,15 @@ func parse_input(filename string) []Direction {
 		}
 		count, _ := strconv.ParseInt(dirs[i][1:], 10, 64)
 		direction := Direction{turn, uint(count)}
-		dirlist = append(dirlist, direction)
+		ch <- direction
 	}
-	return dirlist
+	close(ch)
 }
 
 func main() {
-	dirlist := parse_input("input.txt")
-	for _, val := range dirlist {
+	ch := make(chan Direction)
+	go parse_input("input.txt", ch)
+	for val := range ch {
 		fmt.Println(val)
 	}
 }
