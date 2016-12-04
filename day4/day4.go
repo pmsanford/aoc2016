@@ -22,6 +22,22 @@ func parse_line(name string) EncryptedName {
 	return EncryptedName{comps[:len(comps)-1], sector, checksum[:len(checksum)-1]}
 }
 
+func count_letters(letters []string) map[rune]uint {
+	mp := make(map[rune]uint)
+	for _, str := range letters {
+		for _, letter := range str {
+			val, pres := mp[letter]
+			if pres {
+				mp[letter] = val + 1
+			} else {
+				mp[letter] = 1
+			}
+		}
+	}
+	return mp
+}
+
 func main() {
-	fmt.Println(parse_line("aaaa-bbb-z-y-x-123[abxyz]"))
+	name := parse_line("aaaa-bbb-z-y-x-123[abxyz]")
+	fmt.Println(count_letters(name.name))
 }
