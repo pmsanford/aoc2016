@@ -84,10 +84,17 @@ func count_letters(letters []string) LetterCount {
 	return mp
 }
 
+func create_checksum(mp LetterCount) string {
+	var checksum string
+	mp.sort()
+	for rn := range mp {
+		checksum += string(rn)
+	}
+	return checksum
+}
+
 func main() {
-	name := parse_line("aaaa-bbbbb-z-y-x-123[abxyz]")
+	name := parse_line("aaaa-bbb-z-y-x-123[abxyz]")
 	count := count_letters(name.name)
-	fmt.Println(count)
-	count.sort()
-	fmt.Println(count)
+	fmt.Println(create_checksum(count))
 }
