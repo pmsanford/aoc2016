@@ -5,7 +5,13 @@ import (
 	"strings"
 )
 
-func parse_line(name string) ([]string, int, string) {
+type EncryptedName struct {
+	name     []string
+	sector   int
+	checksum string
+}
+
+func parse_line(name string) EncryptedName {
 	comps := strings.Split(name, "-")
 	sector_str := comps[len(comps)-1]
 	var (
@@ -13,7 +19,7 @@ func parse_line(name string) ([]string, int, string) {
 		checksum string
 	)
 	fmt.Sscanf(sector_str, "%d[%s]", &sector, &checksum)
-	return comps[:len(comps)-1], sector, checksum[:len(checksum)-1]
+	return EncryptedName{comps[:len(comps)-1], sector, checksum[:len(checksum)-1]}
 }
 
 func main() {
