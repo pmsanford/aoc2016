@@ -114,6 +114,31 @@ func do_counts(ch chan EncryptedName, och chan EncryptedName) {
 	close(och)
 }
 
+func (enm *EncryptedName) decrypt() []string {
+	shift := rune(enm.sector % 26)
+	decrypted := make([]string, 0)
+	for _, word := range enm.name {
+		var newword string
+		for _, rn := range word {
+			newchar := rn + shift
+			if newchar > 122 {
+				newchar = 96 + (newchar - 122)
+			}
+			newword += string(newchar)
+		}
+		decrypted = append(decrypted, newword)
+	}
+	return decrypted
+}
+
+func (enm *EncryptedName) is_valid() bool {
+	if enm.count == nil {
+		enm.count = count_letters(enm.name)
+	}
+	chk := create_checksum(enm.count)
+	return chk == enm.checksum
+}
+
 func main() {
 	ipt_ch := make(chan string)
 	enm_ch := make(chan EncryptedName)
@@ -124,8 +149,7 @@ func main() {
 	sum := 0
 	count := 0
 	for enm := range ctd_ch {
-		chk := create_checksum(enm.count)
-		if chk == enm.checksum {
+		if enm.is_valid() {
 			sum += enm.sector
 		}
 		count++
