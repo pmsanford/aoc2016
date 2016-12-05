@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -9,6 +11,7 @@ type EncryptedName struct {
 	name     []string
 	sector   int
 	checksum string
+	count    LetterCount
 }
 
 type LetterCount map[rune]uint
@@ -21,7 +24,7 @@ func parse_line(name string) EncryptedName {
 		checksum string
 	)
 	fmt.Sscanf(sector_str, "%d[%s]", &sector, &checksum)
-	return EncryptedName{comps[:len(comps)-1], sector, checksum[:len(checksum)-1]}
+	return EncryptedName{comps[:len(comps)-1], sector, checksum[:len(checksum)-1], nil}
 }
 
 func combine_strings(letters []string) string {
@@ -59,16 +62,14 @@ func (mp *LetterCount) add(rn rune, num uint) {
 	(*mp)[rn] = num
 }
 
-func (mp *LetterCount) sort() {
-	new_map := make(LetterCount)
+func (mp *LetterCount) get_sorted_letters() string {
+	var out string
 	for len(*mp) > 0 {
-		rn, num := mp.pop_highest()
-		new_map.add(rn, num)
+		rn, _ := mp.pop_highest()
+		out += string(rn)
 	}
 
-	for rn, num := range new_map {
-		mp.add(rn, num)
-	}
+	return out
 }
 
 func count_letters(letters []string) LetterCount {
@@ -85,16 +86,50 @@ func count_letters(letters []string) LetterCount {
 }
 
 func create_checksum(mp LetterCount) string {
-	var checksum string
-	mp.sort()
-	for rn := range mp {
-		checksum += string(rn)
+	sorted := mp.get_sorted_letters()
+	return sorted[:5]
+}
+
+func read_input(filename string, ch chan string) {
+	f, _ := os.Open("input.txt")
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		ch <- scanner.Text()
 	}
-	return checksum
+	close(ch)
+}
+
+func parse_lines(ch chan string, och chan EncryptedName) {
+	for str := range ch {
+		och <- parse_line(str)
+	}
+	close(och)
+}
+
+func do_counts(ch chan EncryptedName, och chan EncryptedName) {
+	for enm := range ch {
+		enm.count = count_letters(enm.name)
+		och <- enm
+	}
+	close(och)
 }
 
 func main() {
-	name := parse_line("aaaa-bbb-z-y-x-123[abxyz]")
-	count := count_letters(name.name)
-	fmt.Println(create_checksum(count))
+	ipt_ch := make(chan string)
+	enm_ch := make(chan EncryptedName)
+	ctd_ch := make(chan EncryptedName)
+	go read_input("input.txt", ipt_ch)
+	go parse_lines(ipt_ch, enm_ch)
+	go do_counts(enm_ch, ctd_ch)
+	sum := 0
+	count := 0
+	for enm := range ctd_ch {
+		chk := create_checksum(enm.count)
+		if chk == enm.checksum {
+			sum += enm.sector
+		}
+		count++
+	}
+	fmt.Println(sum)
+	fmt.Println(count)
 }
