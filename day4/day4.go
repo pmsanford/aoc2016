@@ -146,14 +146,9 @@ func main() {
 	go read_input("input.txt", ipt_ch)
 	go parse_lines(ipt_ch, enm_ch)
 	go do_counts(enm_ch, ctd_ch)
-	sum := 0
-	count := 0
 	for enm := range ctd_ch {
 		if enm.is_valid() {
-			sum += enm.sector
+			fmt.Printf("%d: %s\n", enm.sector, enm.decrypt())
 		}
-		count++
 	}
-	fmt.Println(sum)
-	fmt.Println(count)
 }
